@@ -27,16 +27,16 @@ jobs:
         uses: haythem/public-ip@v1.2
 
       - uses: actions/checkout@v2
-      - name: Deploy
+      - name: Deploy to development environment
         env:
           EC2_USER_NAME: ${{ secrets.EC2_USER_NAME }}
-          SSH_PORT: 22
+          SSH_PORT_22: ${{ secrets.SSH_PORT_22 }}
           DEV_BASTION_PRIVATE_KEY: ${{ secrets.DEV_BASTION_PRIVATE_KEY }}
           DEV_WEB_PRIVATE_KEY: ${{ secrets.DEV_WEB_PRIVATE_KEY }}
           DEV_AWS_BASTION_HOST_NAME: ${{ secrets.DEV_AWS_BASTION_HOST_NAME }}
           DEV_AWS_WEB_HOST_NAME: ${{ secrets.DEV_AWS_WEB_HOST_NAME }}
-          DEV_AWS_ACCESS_KEY_ID: ${{ secrets.DEV_AWS_ACCESS_KEY_ID }}
-          DEV_AWS_SECRET_ACCESS_KEY: ${{ secrets.DEV_AWS_SECRET_ACCESS_KEY }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           DEV_AWS_SECURITY_GROUP: ${{ secrets.DEV_AWS_SECURITY_GROUP }}
         run: |
           # https://github.com/haythem/public-ip
@@ -49,27 +49,25 @@ jobs:
           aws --version
 
           # AWS CLIに設定をする
-          printf "${DEV_AWS_ACCESS_KEY_ID}\n${DEV_AWS_SECRET_ACCESS_KEY}\nap-northeast-1\njson\n" | aws configure --profile monoinv-dev
+          printf "${AWS_ACCESS_KEY_ID}\n${AWS_SECRET_ACCESS_KEY}\nap-northeast-1\njson\n" | aws configure --profile monoinv-dev
           aws configure get aws_access_key_id --profile monoinv-dev
 
           # SSHポートを開放する
-          aws --profile monoinv-dev ec2 authorize-security-group-ingress --group-id ${DEV_AWS_SECURITY_GROUP} --protocol tcp --port ${SSH_PORT} --cidr "$IP_ADDRESS"/32
+          aws --profile monoinv-dev ec2 authorize-security-group-ingress --group-id ${DEV_AWS_SECURITY_GROUP} --protocol tcp --port ${SSH_PORT_22} --cidr "$IP_ADDRESS"/32
 
-          # SSH接続して、git pullする
+          # 多段SSH接続してデプロイする
           echo "${DEV_BASTION_PRIVATE_KEY}" > dev_bastion_private_key && chmod 600 dev_bastion_private_key
           echo "${DEV_WEB_PRIVATE_KEY}" > dev_web_private_key && chmod 600 dev_web_private_key
-          ssh -tt -o ProxyCommand='ssh -o StrictHostKeyChecking=no -i dev_bastion_private_key -p 22 -W %h:%p ec2-user@54.95.66.48' -o StrictHostKeyChecking=no -i dev_web_private_key -p 22 ec2-user@10.0.2.7 '
-          pwd
-          ls -la
+          ssh -tt -o ProxyCommand='ssh -o StrictHostKeyChecking=no -i dev_bastion_private_key -p ${SSH_PORT_22} -W %h:%p ${EC2_USER_NAME}@${DEV_AWS_BASTION_HOST_NAME}' -o StrictHostKeyChecking=no -i dev_web_private_key -p ${SSH_PORT_22} ${EC2_USER_NAME}@${DEV_AWS_WEB_HOST_NAME} '
           sudo -u root sh -c "cd /root/monoinvestment &&
           git checkout development &&
           git fetch --all &&
           git reset --hard origin/development &&
           git pull origin development &&
           cd ./backend &&
-          sh ./batch/deploy_web.sh
-          ls -la"
+          sh ./batch/deploy_web.sh"
           exit 0
           '
+
           # SSHのポートを閉じる
-          aws --profile monoinv-dev ec2 revoke-security-group-ingress --group-id ${DEV_AWS_SECURITY_GROUP} --protocol tcp --port ${SSH_PORT} --cidr "$IP_ADDRESS"/32
+          aws --profile monoinv-dev ec2 revoke-security-group-ingress --group-id ${DEV_AWS_SECURITY_GROUP} --protocol tcp --port ${SSH_PORT_22} --cidr "$IP_ADDRESS"/32
