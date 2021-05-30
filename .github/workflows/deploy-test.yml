@@ -2,13 +2,13 @@
 
 name: CI
 
-# Controls when the action will run. 
+# Controls when the action will run.
 on:
   # Triggers the workflow on push or pull request events but only for the main branch
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -16,21 +16,51 @@ on:
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   # This workflow contains a single job called "build"
-  build:
+  deploy:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - name: Public IP
+        id: ip
+        uses: haythem/public-ip@v1
+
       - uses: actions/checkout@v2
-
-      # Runs a single command using the runners shell
-      - name: Run a one-line script
-        run: echo Hello, world!
-
-      # Runs a set of commands using the runners shell
-      - name: Run a multi-line script
+      - name: Deploy
+        env:
+          EC2_USER_NAME: ${{ secrets.EC2_USER_NAME }}
+          SSH_PORT: 22
+          DEV_BASTION_PRIVATE_KEY: ${{ secrets.DEV_BASTION_PRIVATE_KEY }}
+          DEV_WEB_PRIVATE_KEY: ${{ secrets.DEV_WEB_PRIVATE_KEY }}
+          DEV_AWS_BASTION_HOST_NAME: ${{ secrets.DEV_AWS_BASTION_HOST_NAME }}
+          DEV_AWS_WEB_HOST_NAME: ${{ secrets.DEV_AWS_WEB_HOST_NAME }}
+          DEV_AWS_ACCESS_KEY_ID: ${{ secrets.DEV_AWS_ACCESS_KEY_ID }}
+          DEV_AWS_SECRET_ACCESS_KEY: ${{ secrets.DEV_AWS_SECRET_ACCESS_KEY }}
+          DEV_AWS_SECURITY_GROUP: ${{ secrets.DEV_AWS_SECURITY_GROUP }}
         run: |
-          echo Add other actions to build,
-          echo test, and deploy your project.
+          # https://github.com/haythem/public-ip
+          IP_ADDRESS=`echo ${{ steps.ip.outputs.ipv4 }}`
+
+          # AWS CLIをインストール
+          curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+          unzip awscliv2.zip
+          sudo ./aws/install
+          aws --version
+
+          # AWS CLIに設定をする
+          printf "${DEV_AWS_ACCESS_KEY_ID}\n${DEV_AWS_SECRET_ACCESS_KEY}\nap-northeast-1\njson\n" | aws configure --profile monoinv-dev
+          aws configure get aws_access_key_id --profile monoinv-dev
+
+          # SSHポートを開放する
+          aws --profile monoinv-dev ec2 authorize-security-group-ingress --group-id ${DEV_AWS_SECURITY_GROUP} --protocol tcp --port ${SSH_PORT} --cidr "$IP_ADDRESS"/32
+
+          # SSH接続して、git pullする
+          echo "$DEV_BASTION_PRIVATE_KEY" > dev_bastion_private_key && chmod 600 dev_bastion_private_key
+          echo "$DEV_WEB_PRIVATE_KEY" > dev_web_private_key && chmod 600 dev_web_private_key
+          ssh -o StrictHostKeyChecking=no -i dev_bastion_private_key ${EC2_USER_NAME}@${DEV_AWS_BASTION_HOST_NAME}
+          ssh -o ProxyCommand='ssh -i dev_bastion_private_key -p ${SSH_PORT} -W %h:%p ${EC2_USER_NAME}@${DEV_AWS_BASTION_HOST_NAME}' -i dev_web_private_key -p ${SSH_PORT} ${EC2_USER_NAME}@${DEV_AWS_WEB_HOST_NAME}
+          sudo -u root sh -c "ls -la /root/monoinvestment"
+
+          # SSHのポートを閉じる
+          aws --profile eyemovic-dev ec2 revoke-security-group-ingress --group-id ${DEV_AWS_SECURITY_GROUP} --protocol tcp --port ${SSH_PORT} --cidr "$IP_ADDRESS"/32
