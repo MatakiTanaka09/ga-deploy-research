@@ -60,6 +60,7 @@ jobs:
           echo "$DEV_WEB_PRIVATE_KEY" > dev_web_private_key && chmod 600 dev_web_private_key
           ssh -tt -o StrictHostKeyChecking=no -i dev_bastion_private_key -p ${SSH_PORT} ${EC2_USER_NAME}@${DEV_AWS_BASTION_HOST_NAME} '
           ls -la
+          exit 0
           # SSHのポートを閉じる
           aws --profile monoinv-dev ec2 revoke-security-group-ingress --group-id ${DEV_AWS_SECURITY_GROUP} --protocol tcp --port ${SSH_PORT} --cidr "$IP_ADDRESS"/32
           '
