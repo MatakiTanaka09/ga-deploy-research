@@ -53,16 +53,14 @@ jobs:
           aws configure get aws_access_key_id --profile monoinv-dev
 
           # SSHポートを開放する
-          echo "Start --- Open SSH port"
           aws --profile monoinv-dev ec2 authorize-security-group-ingress --group-id ${DEV_AWS_SECURITY_GROUP} --protocol tcp --port ${SSH_PORT} --cidr "$IP_ADDRESS"/32
-          echo "Success -- Open SSH port"
 
           # SSH接続して、git pullする
           echo "$DEV_BASTION_PRIVATE_KEY" > dev_bastion_private_key && chmod 600 dev_bastion_private_key
           echo "$DEV_WEB_PRIVATE_KEY" > dev_web_private_key && chmod 600 dev_web_private_key
-          echo "Start -- SSH"
           sudo ssh -t -t -o StrictHostKeyChecking=no -i dev_bastion_private_key -p 22 ec2-user@54.95.66.48 '
-          echo "Success -- SSH"
+          pwd
+          cd /home/root/investment
           pwd
           exit
           # SSHのポートを閉じる
