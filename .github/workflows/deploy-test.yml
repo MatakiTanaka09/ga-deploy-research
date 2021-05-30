@@ -58,9 +58,9 @@ jobs:
           # SSH接続して、git pullする
           echo "$DEV_BASTION_PRIVATE_KEY" > dev_bastion_private_key && chmod 600 dev_bastion_private_key
           echo "$DEV_WEB_PRIVATE_KEY" > dev_web_private_key && chmod 600 dev_web_private_key
-          ssh -t -t -o StrictHostKeyChecking=no -i dev_bastion_private_key -p ${SSH_PORT} ${EC2_USER_NAME}@${DEV_AWS_BASTION_HOST_NAME} '
-          sudo -u root ssh web01
-          sudo -u root ls -la
+          ssh -tt -o StrictHostKeyChecking=no -i dev_bastion_private_key -p ${SSH_PORT} ${EC2_USER_NAME}@${DEV_AWS_BASTION_HOST_NAME} '
+          ssh -tt -o StrictHostKeyChecking=no -i dev_web_private_key -p 22 ec2-user@10.0.2.7
+          ls -la
           exit
           # SSHのポートを閉じる
           aws --profile monoinv-dev ec2 revoke-security-group-ingress --group-id ${DEV_AWS_SECURITY_GROUP} --protocol tcp --port ${SSH_PORT} --cidr "$IP_ADDRESS"/32
