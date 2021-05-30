@@ -67,12 +67,7 @@ jobs:
           git reset --hard origin/development &&
           git pull origin development &&
           cd ./backend &&
-          npm run migration:run &&
-          npm install
-          rm -rf dist/
-          npm run build
-          pm2 kill
-          pm2 start dist/src/index.js
+          sh ./batch/deploy_web.sh
           ls -la"
           exit 0
           '
