@@ -63,7 +63,7 @@ jobs:
           echo "Start -- SSH"
           sudo ssh -t -t -o StrictHostKeyChecking=no -i dev_bastion_private_key -p 22 ec2-user@54.95.66.48 '
           echo "Success -- SSH"
-          sudo -u root sh -c "ls -la /root/monoinvestment"
+          pwd
 
           # SSHのポートを閉じる
           aws --profile eyemovic-dev ec2 revoke-security-group-ingress --group-id ${DEV_AWS_SECURITY_GROUP} --protocol tcp --port ${SSH_PORT} --cidr "$IP_ADDRESS"/32
