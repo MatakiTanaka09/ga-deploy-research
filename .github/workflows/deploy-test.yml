@@ -58,7 +58,7 @@ jobs:
           # SSH接続して、git pullする
           echo "$DEV_BASTION_PRIVATE_KEY" > dev_bastion_private_key && chmod 600 dev_bastion_private_key
           echo "$DEV_WEB_PRIVATE_KEY" > dev_web_private_key && chmod 600 dev_web_private_key
-          ssh -t -t -o ProxyCommand='ssh -i dev_bastion_private_key -p ${SSH_PORT} -W %h:%p ${EC2_USER_NAME}@${DEV_AWS_BASTION_HOST_NAME}' -o StrictHostKeyChecking=no -i dev_web_private_key -p 22 ec2-user@10.0.2.7 '
+          ssh -t -t -o ProxyCommand='ssh -i dev_bastion_private_key -p 22 -W %h:%p ec2-user@54.95.66.48' -o StrictHostKeyChecking=no -i dev_web_private_key -p 22 ec2-user@10.0.2.7 '
           ls -la
           pwd
           exit
