@@ -61,7 +61,7 @@ jobs:
           ssh -tt -o ProxyCommand='ssh -o StrictHostKeyChecking=no -i dev_bastion_private_key -p 22 -W %h:%p ec2-user@54.95.66.48' -o StrictHostKeyChecking=no -i dev_web_private_key -p 22 ec2-user@10.0.2.7 '
           pwd
           ls -la
-          sudo -u root sh -c "pwd;ls -la"
+          sudo -u root sh -c "cd /root/monoinvestment && ls -la ./"
           exit 0
           '
           # SSHのポートを閉じる
