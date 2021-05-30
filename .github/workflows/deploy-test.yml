@@ -59,7 +59,6 @@ jobs:
           echo "$DEV_BASTION_PRIVATE_KEY" > dev_bastion_private_key && chmod 600 dev_bastion_private_key
           echo "$DEV_WEB_PRIVATE_KEY" > dev_web_private_key && chmod 600 dev_web_private_key
           ssh -i dev_bastion_private_key -p 22 ec2-user@54.95.66.48 '
-          sudo -u root ssh web01
           ls -la
           pwd
           exit
