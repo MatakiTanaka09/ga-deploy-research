@@ -59,8 +59,10 @@ jobs:
           echo "$DEV_BASTION_PRIVATE_KEY" > dev_bastion_private_key && chmod 600 dev_bastion_private_key
           echo "$DEV_WEB_PRIVATE_KEY" > dev_web_private_key && chmod 600 dev_web_private_key
           ssh -tt -o StrictHostKeyChecking=no -i dev_bastion_private_key -p ${SSH_PORT} ${EC2_USER_NAME}@${DEV_AWS_BASTION_HOST_NAME} '
-          sudo ssh -tt -o StrictHostKeyChecking=no -i /root/.ssh/config.d/prod_monoinv.pem -p 22 ec2-user@10.0.2.7
-          sudo -u root sh -c "pwd;ls -la"
+          sudo ssh -tt -o StrictHostKeyChecking=no -i /root/.ssh/config.d/prod_monoinv.pem -p 22 ec2-user@10.0.2.7 '
+          sudo -u root sh -c "cd /root/monoinvestment && ls -la ./"
+          exit
+          '
           exit
           # SSHのポートを閉じる
           aws --profile monoinv-dev ec2 revoke-security-group-ingress --group-id ${DEV_AWS_SECURITY_GROUP} --protocol tcp --port ${SSH_PORT} --cidr "$IP_ADDRESS"/32
