@@ -35,6 +35,8 @@ jobs:
       - name: Public IP
         id: ip
         uses: haythem/public-ip@v1.2
+        env:
+          IP_ADDRESS: ${{ steps.ip.outputs.ipv4 }}
 
       - name: Copy files to the production website with the AWS CLI
         run: |
@@ -48,14 +50,10 @@ jobs:
           printf "${DEV_AWS_ACCESS_KEY_ID}\n${DEV_AWS_SECRET_ACCESS_KEY}\nap-northeast-1\njson\n" | aws configure --profile monoinv-dev
           aws configure get aws_access_key_id --profile monoinv-dev
 
-      - name: Define IP_ADDRESS
-        env:
-          IP_ADDRESS: ${{ steps.ip.outputs.ipv4 }}
-
       - name: Release Port
         run: |
           # SSHポートを開放する
-          aws --profile monoinv-dev ec2 authorize-security-group-ingress --group-id ${{ env.DEV_AWS_SECURITY_GROUP }} --protocol tcp --port ${{ env.SSH_PORT_22 }} --cidr "$IP_ADDRESS"/32
+          aws --profile monoinv-dev ec2 authorize-security-group-ingress --group-id ${{ env.DEV_AWS_SECURITY_GROUP }} --protocol tcp --port ${{ env.SSH_PORT_22 }} --cidr "${{ env.IP_ADDRESS }}"/32
 
       - uses: actions/checkout@v2
       - name: Deploy
@@ -92,4 +90,4 @@ jobs:
       - name: Close Port
         run: |
           # SSHのポートを閉じる
-          aws --profile monoinv-dev ec2 revoke-security-group-ingress --group-id ${{ env.DEV_AWS_SECURITY_GROUP }} --protocol tcp --port ${{ env.SSH_PORT_22 }} --cidr "$IP_ADDRESS"/32
+          aws --profile monoinv-dev ec2 revoke-security-group-ingress --group-id ${{ env.DEV_AWS_SECURITY_GROUP }} --protocol tcp --port ${{ env.SSH_PORT_22 }} --cidr "${{ env.IP_ADDRESS }}"/32
