@@ -58,11 +58,13 @@ jobs:
           # SSHポートを開放する
           aws --profile monoinv-dev ec2 authorize-security-group-ingress --group-id ${DEV_AWS_SECURITY_GROUP} --protocol tcp --port ${SSH_PORT} --cidr "$IP_ADDRESS"/32
 
-          # SSH接続して、git pullする
-          echo "$DEV_BASTION_PRIVATE_KEY" > dev_bastion_private_key && chmod 600 dev_bastion_private_key
-          echo "$DEV_WEB_PRIVATE_KEY" > dev_web_private_key && chmod 600 dev_web_private_key
-          ssh -i dev_bastion_private_key -p 22 ec2-user@54.95.66.48 '
-          sudo -u root ssh web01   
+          # 多段SSH接続してデプロイする
+          echo "${DEV_BASTION_PRIVATE_KEY}" > dev_bastion_private_key && chmod 600 dev_bastion_private_key
+          echo "${DEV_WEB_PRIVATE_KEY}" > dev_web_private_key && chmod 600 dev_web_private_key
+          ssh -tt -o ProxyCommand='ssh -o StrictHostKeyChecking=no -i dev_bastion_private_key -p ${SSH_PORT_22} -W %h:%p ${EC2_USER_NAME}@${DEV_AWS_BASTION_HOST_NAME}' -o StrictHostKeyChecking=no -i dev_web_private_key -p ${SSH_PORT_22} ${EC2_USER_NAME}@${DEV_AWS_WEB_HOST_NAME} '
+          sudo -u root sh -c "cd /root/monoinvestment &&
+          git checkout development &&
+          cd ./backend &&
           ls -la
           pwd
           exit
