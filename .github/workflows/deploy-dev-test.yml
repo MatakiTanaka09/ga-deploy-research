@@ -72,15 +72,16 @@ jobs:
           aws --profile monoinv-dev ec2 revoke-security-group-ingress --group-id ${{ env.DEV_AWS_SECURITY_GROUP }} --protocol tcp --port ${{ env.SSH_PORT_22 }} --cidr "$IP_ADDRESS"/32
           '
 
-      - uses: actions/checkout@v2
-      - name: Deploy2
+      - name: Release Port
         run: |
           # https://github.com/haythem/public-ip
           IP_ADDRESS=`echo ${{ steps.ip.outputs.ipv4 }}`
-
           # SSHポートを開放する
           aws --profile monoinv-dev ec2 authorize-security-group-ingress --group-id ${{ env.DEV_AWS_SECURITY_GROUP }} --protocol tcp --port ${{ env.SSH_PORT_22 }} --cidr "$IP_ADDRESS"/32
 
+      - uses: actions/checkout@v2
+      - name: Deploy2
+        run: |
           # 多段SSH接続してデプロイする
           echo "${{ env.DEV_BASTION_PRIVATE_KEY }}" > dev_bastion_private_key && chmod 600 dev_bastion_private_key
           echo "${{ env.DEV_WEB_PRIVATE_KEY }}" > dev_web_private_key && chmod 600 dev_web_private_key
@@ -91,6 +92,11 @@ jobs:
           ls -la &&
           pwd"
           exit 0
+          '
+      - name: Close Port
+        run: |
+          # https://github.com/haythem/public-ip
+          IP_ADDRESS=`echo ${{ steps.ip.outputs.ipv4 }}`
+
           # SSHのポートを閉じる
           aws --profile monoinv-dev ec2 revoke-security-group-ingress --group-id ${{ env.DEV_AWS_SECURITY_GROUP }} --protocol tcp --port ${{ env.SSH_PORT_22 }} --cidr "$IP_ADDRESS"/32
-          '
