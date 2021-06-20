@@ -68,8 +68,8 @@ jobs:
           git checkout development &&
           cd ./backend &&
           ls -la
-          pwd
-          exit
+          pwd"
+          exit 0
           # SSHのポートを閉じる
           aws --profile monoinv-dev ec2 revoke-security-group-ingress --group-id ${{ env.DEV_AWS_SECURITY_GROUP }} --protocol tcp --port ${{ env.SSH_PORT_22 }} --cidr "$IP_ADDRESS"/32
           '
