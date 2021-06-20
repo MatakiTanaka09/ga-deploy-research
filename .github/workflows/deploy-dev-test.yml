@@ -55,7 +55,7 @@ jobs:
           # https://github.com/haythem/public-ip
           IP_ADDRESS=`echo ${{ steps.ip.outputs.ipv4 }}`
 
-          echo `PORT: ${ env.SSH_PORT}`
+          echo `PORT: ${{ env.SSH_PORT }}`
 
           # SSHポートを開放する
           aws --profile monoinv-dev ec2 authorize-security-group-ingress --group-id ${ env.DEV_AWS_SECURITY_GROUP } --protocol tcp --port ${ env.SSH_PORT } --cidr "$IP_ADDRESS"/32
