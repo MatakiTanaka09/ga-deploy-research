@@ -71,5 +71,5 @@ jobs:
           pwd
           exit
           # SSHのポートを閉じる
-          aws --profile monoinv-dev ec2 revoke-security-group-ingress --group-id ${env.DEV_AWS_SECURITY_GROUP} --protocol tcp --port ${env.SSH_PORT} --cidr "${{IP_ADDRESS}}"/32
+          aws --profile monoinv-dev ec2 revoke-security-group-ingress --group-id ${env.DEV_AWS_SECURITY_GROUP} --protocol tcp --port ${env.SSH_PORT} --cidr "$IP_ADDRESS"/32
           '
