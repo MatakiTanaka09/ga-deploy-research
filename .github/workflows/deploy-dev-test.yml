@@ -1,6 +1,6 @@
 # This is a basic workflow to help you get started with Actions
 
-name: Deploy test
+name: Deploy Dev Test
 
 # Controls when the action will run.
 on:
@@ -54,6 +54,8 @@ jobs:
         run: |
           # https://github.com/haythem/public-ip
           IP_ADDRESS=`echo ${{ steps.ip.outputs.ipv4 }}`
+
+          echo `PORT: ${SSH_PORT}`
 
           # SSHポートを開放する
           aws --profile monoinv-dev ec2 authorize-security-group-ingress --group-id ${DEV_AWS_SECURITY_GROUP} --protocol tcp --port ${SSH_PORT} --cidr "$IP_ADDRESS"/32
