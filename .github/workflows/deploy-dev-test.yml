@@ -55,10 +55,10 @@ jobs:
           # https://github.com/haythem/public-ip
           IP_ADDRESS=`echo ${{ steps.ip.outputs.ipv4 }}`
 
-          echo `PORT: ${{env.SSH_PORT}}`
+          echo `PORT: ${ env.SSH_PORT}`
 
           # SSHポートを開放する
-          aws --profile monoinv-dev ec2 authorize-security-group-ingress --group-id ${{env.DEV_AWS_SECURITY_GROUP}} --protocol tcp --port ${{env.SSH_PORT}} --cidr "${{IP_ADDRESS}}"/32
+          aws --profile monoinv-dev ec2 authorize-security-group-ingress --group-id ${ env.DEV_AWS_SECURITY_GROUP } --protocol tcp --port ${ env.SSH_PORT } --cidr "$IP_ADDRESS"/32
 
           # 多段SSH接続してデプロイする
           echo "${env.DEV_BASTION_PRIVATE_KEY}" > dev_bastion_private_key && chmod 600 dev_bastion_private_key
