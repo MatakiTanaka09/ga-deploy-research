@@ -27,7 +27,7 @@ jobs:
           aws --version
       - name: AWS CLIのセットアップ
         run: |
-          printf "${DEV_AWS_ACCESS_KEY_ID}\n${DEV_AAWS_SECRET_ACCESS_KEY}\nap-northeast-1\njson\n" | aws configure --profile monoinv-dev
+          printf "${DEV_AWS_ACCESS_KEY_ID}\n${DEV_AWS_SECRET_ACCESS_KEY}\nap-northeast-1\njson\n" | aws configure --profile monoinv-dev
           aws configure get aws_access_key_id --profile monoinv-dev
         env:
           DEV_AWS_ACCESS_KEY_ID: ${{ secrets.DEV_AWS_ACCESS_KEY_ID }}
