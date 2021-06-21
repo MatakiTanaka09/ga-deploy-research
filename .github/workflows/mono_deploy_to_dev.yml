@@ -22,7 +22,7 @@ jobs:
       - name: Public IPをアウトプットに確認する
         id: print_ip
         run: |
-          echo "::set-output name=public-id::$(echo steps.ip.outputs.ipv4)"
+          echo "::set-output name=public-id::$(echo ${{ steps.ip.outputs.ipv4 }})"
 
       - uses: actions/checkout@v2
 
