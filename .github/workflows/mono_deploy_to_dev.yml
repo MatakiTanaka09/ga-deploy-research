@@ -33,12 +33,6 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
-  open_ssh_port:
-    # The type of runner that the job will run on
-    runs-on: ubuntu-latest
-    needs: setup
-    # Steps represent a sequence of tasks that will be executed as part of the job
-    steps:
       - name: SSHポートの開放
         run: |
           # https://github.com/haythem/public-ip
