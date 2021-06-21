@@ -32,6 +32,10 @@ jobs:
           unzip awscliv2.zip
           sudo ./aws/install --update
           aws --version
+  open_ssh_port:
+    runs-on: ubuntu-latest
+    needs: setup
+    steps:
       - name: AWS CLIのセットアップ
         run: |
           printf "${AWS_ACCESS_KEY_ID}\n${AWS_SECRET_ACCESS_KEY}\nap-northeast-1\njson\n" | aws configure --profile monoinv-dev
@@ -39,11 +43,9 @@ jobs:
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-
       - name: SSHポートの開放
         run: |
-          # https://github.com/haythem/public-ip
-          IP_ADDRESS=`echo ${{ steps.ip.outputs.ipv4 }}`
+          IP_ADDRESS=`echo ${{ needs.setup.outputs.public_ip }}`
           aws --profile monoinv-dev ec2 authorize-security-group-ingress --group-id ${DEV_AWS_SECURITY_GROUP} --protocol tcp --port ${SSH_PORT_22} --cidr "$IP_ADDRESS"/32
         env:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -54,7 +56,7 @@ jobs:
   deploy01:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
-    needs: setup
+    needs: open_ssh_port
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       - name: 多段SSH接続 + DB マイグレーション + バックエンドデプロイ
