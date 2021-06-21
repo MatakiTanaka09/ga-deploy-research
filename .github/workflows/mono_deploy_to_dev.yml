@@ -12,10 +12,17 @@ on:
 jobs:
   setup:
     runs-on: ubuntu-latest
+    outputs:
+      public_ip: ${{ steps.print_ip.outputs.public-id }}
     steps:
       - name: Public IPの取得
         id: ip
         uses: haythem/public-ip@v1.2
+
+      - name: Public IPをアウトプットに確認する
+        id: print_ip
+        run: |
+          echo "::set-output name=public-id::$(echo steps.ip.outputs.ipv4)"
 
       - uses: actions/checkout@v2
 
@@ -66,7 +73,7 @@ jobs:
           echo "deploy01"
   close_ssh_port:
     runs-on: ubuntu-latest
-    needs: [deploy01, deploy02]
+    needs: [setup, deploy01, deploy02]
     steps:
       - name: Public IPの取得
         id: ip
@@ -74,7 +81,7 @@ jobs:
 
       - name: SSHポートの閉鎖
         run: |
-          IP_ADDRESS=`echo ${{ steps.ip.outputs.ipv4 }}`
+          IP_ADDRESS=`echo ${{ needs.setup.outputs.public_ip }}`
           aws --profile monoinv-dev ec2 revoke-security-group-ingress --group-id ${DEV_AWS_SECURITY_GROUP} --protocol tcp --port ${SSH_PORT_22} --cidr "$IP_ADDRESS"/32
         if: ${{ always() }}
         env:
